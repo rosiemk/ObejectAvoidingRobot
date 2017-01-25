@@ -8,6 +8,11 @@ http://bit.ly/2iQXvlL
 #include <Wire.h>
 #include <avr/wdt.h> // watchdog
 #include "i2c_distance_sensor.h"
+#include "logging.h"
+#include "moving_average.h"
+
+#define LOGGING  // comment out to disable logging.
+
 
 #include "l293d_motor_driver.h"
 #define LEFT_MOTOR_INIT 11, 12, 13
@@ -49,9 +54,11 @@ namespace Aether
     void run()
     {
      //distanceSensor.readDistance();
-
+     
       if (state == stateRunning) {
-        if (distanceSensor.readDistance() <= too_close) {
+        unsigned int distance = distanceSensor.readDistance();
+        log("distance: %u\n", distance);
+        if (distance <= too_close) {
           state = stateStopped;
           leftMotor.setSpeed(0);
           rightMotor.setSpeed(0);
@@ -64,6 +71,7 @@ namespace Aether
       Motor leftMotor;
       Motor rightMotor;
       DistanceSensor distanceSensor;
+      //MovingAverage<unsigned int, 3> distanceAverage;
       
       enum state_t { stateStopped, stateRunning }; //enum holds user defined variables
       state_t state;

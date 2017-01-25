@@ -19,35 +19,37 @@ namespace Aether
         //initialiser list
             : DistanceSensorDriver(maxDistance), 
               sensor(maxDistance), I2CAddress(i2c)
-        {
-        //int dir_min;
-        //int dist_min;
-        }
+        { }
+        //int dir_min = 0;
+        int dist_min = 0;
+        enum direction_m {left, middle, right};
+        direction_m dir_min;
+
         unsigned int readDistance();
         unsigned int getMinDistance();
 
        private:
         int sensor;
         int place;
-        //byte distance[3];
+        byte distance[3];
         //int dir_min;
         //int dist_min = 0;
-        const int left = 0;
-        const int middle = 1;
-        const int right = 2;
+        const int _left = 0;
+        const int _middle = 1;
+        const int _right = 2;
         int I2CAddress;
 
         //private method 
         byte readTiny(int address);
         
     };
-
-    struct ProximityData { // store values to be returned in readDistance() function.
+    
+   /* struct ProximityData { // store values to be returned in readDistance() function.
       byte distance[3];
       int dir_min;
       int dist_min;
     };
-    
+   */ 
  //--------private method---------
  byte DistanceSensor::readTiny(int address)
    {
@@ -62,15 +64,15 @@ namespace Aether
 //--------public method---------
 unsigned int DistanceSensor::readDistance()
    {
-            ProximityData pData;
-            ProximityData *pd = &pData; //pointer pd to Proximity Data structure
-            
+           /* ProximityData pData;
+            ProximityData *pd = &pData; //pointer pd to Proximity Data structure pd->distance
+           */ 
             while(readTiny(I2CAddress)<255) {
             Serial.print("WT");
           }
             for (place = 0; place < 3; place++) {
-            pd->distance[place] = readTiny(I2CAddress);
-            return pd->distance[place];
+            distance[place] = readTiny(I2CAddress);
+            return distance[place];
             
             //Serial.print(pd->distance[place]);
             //Serial.print(" ");
@@ -79,23 +81,23 @@ unsigned int DistanceSensor::readDistance()
             //Serial.println();
          
           //return maxDistance;
-         if (pd->distance[left] < pd->distance[middle] && pd->distance[left] < pd->distance[right])
+         if (distance[_left] < distance[_middle] && distance[_left] < distance[_right])
          {
-          pd->dist_min = pd->distance[left];
-          pd->dir_min = left; 
+          dist_min = distance[_left];
+          dir_min = left; 
          }
          else {
-          if (pd->distance[middle] < pd->distance[right])
+          if (distance[_middle] < distance[_right])
           {
-           pd->dist_min = pd->distance[middle];
-           pd->dir_min = middle;
+           dist_min = distance[_middle];
+           dir_min = middle;
           }
           else {
-            pd->dist_min = pd->distance[right];
-            pd->dir_min = right;
+            dist_min = distance[_right];
+            dir_min = right;
           }
          }
-         return pd;
+         //return pd;
          
          /*
           * Serial.print(pd->dist_min);
