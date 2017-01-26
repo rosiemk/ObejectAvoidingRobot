@@ -12,23 +12,9 @@
 
 namespace Aether
 {
-    class DistanceSensor : public DistanceSensorDriver
+    class DistanceSensor //: public DistanceSensorDriver
     {    
-      public:
-        DistanceSensor(int i2c, int maxDistance)
-        //initialiser list
-            : DistanceSensorDriver(maxDistance), 
-              sensor(maxDistance), I2CAddress(i2c)
-        { }
-        //int dir_min = 0;
-        int dist_min = 0;
-        enum direction_m {left, middle, right};
-        direction_m dir_min;
-
-        unsigned int readDistance();
-        unsigned int getMinDistance();
-
-       private:
+      private:
         int sensor;
         int place;
         byte distance[3];
@@ -41,15 +27,26 @@ namespace Aether
 
         //private method 
         byte readTiny(int address);
+      
+      public:
+        DistanceSensor(int i2c, int maxDistance)
+        //initialiser list
+            : /*DistanceSensorDriver(maxDistance), */
+              sensor(maxDistance), I2CAddress(i2c)
         
+        {
+        }
+        //int dir_min = 0;
+        int dist_min = 0; 
+        enum direction_m {left, middle, right};
+        direction_m dir_min;
+        
+        byte* readDistance(); // takes pointer to distance as arg. &distance = *pData
+        void getDistance();
+   
     };
-    
-   /* struct ProximityData { // store values to be returned in readDistance() function.
-      byte distance[3];
-      int dir_min;
-      int dist_min;
-    };
-   */ 
+
+
  //--------private method---------
  byte DistanceSensor::readTiny(int address)
    {
@@ -62,24 +59,19 @@ namespace Aether
    }
          
 //--------public method---------
-unsigned int DistanceSensor::readDistance()
+byte* DistanceSensor::readDistance()
    {
-           /* ProximityData pData;
-            ProximityData *pd = &pData; //pointer pd to Proximity Data structure pd->distance
-           */ 
+            /*
+            distance pData;
+             *pd = &pData; //pointer pd to Proximity Data structure pd->distance
+           */
             while(readTiny(I2CAddress)<255) {
-            Serial.print("WT");
+            //Serial.print("WT");
           }
             for (place = 0; place < 3; place++) {
             distance[place] = readTiny(I2CAddress);
-            return distance[place];
-            
-            //Serial.print(pd->distance[place]);
-            //Serial.print(" ");
-          }
-         
-            //Serial.println();
-         
+          }            
+           
           //return maxDistance;
          if (distance[_left] < distance[_middle] && distance[_left] < distance[_right])
          {
@@ -97,16 +89,17 @@ unsigned int DistanceSensor::readDistance()
             dir_min = right;
           }
          }
-         //return pd;
-         
-         /*
-          * Serial.print(pd->dist_min);
-         Serial.print(" ");
-         Serial.println(pd->dir_min);
-         */ 
-           delay(10);
+          
+         //Serial.print(dist_min);
+         //Serial.print(" ");
+         //Serial.println(dir_min);
            
+           //return pd;
+           //Serial.print(pd);
+           //Serial.println(); 
+          
+           delay(10);
+           return distance;
     }
-
-         
+        
 };
