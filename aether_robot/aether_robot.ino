@@ -35,7 +35,8 @@ namespace Aether
     Robot()
       //initialiser list
       :leftMotor(LEFT_MOTOR_INIT), rightMotor(RIGHT_MOTOR_INIT),
-      distanceSensor(I2CAddress, max_distance)
+      distanceSensor(I2CAddress, max_distance)/*,
+      distanceAverage(max_distance)*/
     {
       initialise();
     }
@@ -54,47 +55,41 @@ namespace Aether
      */
     void run()
     {
-    /*
-    distanceSensor.getDistance();
-    
-    Serial.print(distanceSensor.dist_left);
-    Serial.print(" ");
-    Serial.print(distanceSensor.dist_mid);
-    Serial.print(" ");
-    Serial.println(distanceSensor.dist_right);
-    */
-    
-    unsigned char *distance = distanceSensor.readDistance();
-    for(int i=0; i<3; i++) {
-    Serial.print((int)distance[i]);
-    Serial.print(" ");  
-    }
-    Serial.println();
-
-    
-   
-
-     
-    /*
       if (state == stateRunning) {
-        unsigned int *distance = distanceSensor.readDistance();
-        for(int i=0; i<3; i++) {
+        unsigned char *distance = distanceSensor.readDistance();
+        /*
+        int dist_left = (int)distance[0];
+        int dist_mid = (int)distance[1];
+        int dist_right = (int)distance[2];
+        */
+        //------LOGGING------
+        log("distance: ");
+        for(int i = 0; distance[i]; i++) {
+          log("%u ", (int)distance[i]);
         }
-        //log("distance: %u\n ", distance[0]);
+        log("\n"); 
+        log("min dir:  %u\n", distanceSensor.dir_min);
+        //-------------------
+        
         if (distance <= too_close) {
           state = stateStopped;
           leftMotor.setSpeed(0);
           rightMotor.setSpeed(0);
         }
       }
-     */
+     
     }
-
+    protected:
+      bool moving() { return (state == stateMoving); }
+      bool turning() { return (state == stateTurning); }
+      bool stopped() { return (state == stateStopped); }
+      
+    
     private:
       Motor leftMotor;
       Motor rightMotor;
       DistanceSensor distanceSensor;
-      //MovingAverage<unsigned int, 3> distanceAverage;
+      //MovingAverage<unsigned char, 3> distanceAverage;
       
       enum state_t { stateStopped, stateRunning }; //enum holds user defined variables
       state_t state;

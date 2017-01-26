@@ -41,7 +41,7 @@ namespace Aether
         enum direction_m {left, middle, right};
         direction_m dir_min;
         
-        byte* readDistance(); // takes pointer to distance as arg. &distance = *pData
+        byte* readDistance();
         void getDistance();
    
     };
@@ -60,11 +60,7 @@ namespace Aether
          
 //--------public method---------
 byte* DistanceSensor::readDistance()
-   {
-            /*
-            distance pData;
-             *pd = &pData; //pointer pd to Proximity Data structure pd->distance
-           */
+   {         
             while(readTiny(I2CAddress)<255) {
             //Serial.print("WT");
           }
@@ -89,15 +85,7 @@ byte* DistanceSensor::readDistance()
             dir_min = right;
           }
          }
-          
-         //Serial.print(dist_min);
-         //Serial.print(" ");
-         //Serial.println(dir_min);
-           
-           //return pd;
-           //Serial.print(pd);
-           //Serial.println(); 
-          
+                  
            delay(10);
            return distance;
     }
