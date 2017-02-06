@@ -4,6 +4,7 @@
  * Adapted from author: Miguel Grinberg (Michelino robot)
  * http://bit.ly/2iQXvlL
  */
+
 #include "robot.h"
 
 #define LOGGING  // comment out to disable logging.
@@ -16,7 +17,9 @@ Aether::Robot::Robot()
       distanceAverage(max_distance)*/
       max_distance(TOO_CLOSE*10),
       run_time(30),
-      encoder(R_ENCODER, L_ENCODER, &leftMotor, &rightMotor, TICKS_PER_180)
+      encoder(R_ENCODER, L_ENCODER, &leftMotor, &rightMotor/*, TICKS_PER_180*/),
+      dataString("p"),
+      serial(RECEIVE, TRANSMIT)
     {
       
     }
@@ -34,54 +37,35 @@ void Aether::Robot::run()
      * Must be called repeadtedly from loop
      */
     {
-      unsigned long currentTime = millis();
-      //stop();
-      //delay(5000);
-      //encoder.turnDegrees(180, 100, RIGHT);
-      //while(true){Serial.println("STOP!");}
-      /*
-      if (stopped())
-        return;
-        
-      unsigned long currentTime = millis();
-      unsigned char *distance = distanceSensor.readDistance();
 
-      //------LOGGING------
-        log("distance: ");
-        for(int i = 0; distance[i]; i++) {
-          log("%u ", (int)distance[i]);
-        }
-        log("\n"); 
-        log("state: %d, currentTime: %ul\n", state, currentTime);
-        //log("min dir:  %u\n", distanceSensor.dir_min);
-        //-------------------
-        
-      if (doneRunning(currentTime))
-        stop();
-      else if (moving()) {
-        if (obstacleAhead(distance[1])); // use mid sensor distance
-          turn(currentTime);
-      }
-      else if (turning()) {
-         Serial.println("turning");
-         if (doneTurning(currentTime, distance[1]))
-          move();
-        }
-      */
       
+      /*
       encoder.getCalcSpeed(currentTime); // takes arg of currentTime defined above by millis
       int calcSpeed = encoder.calcSpeed;
       Serial.println((int)calcSpeed);
-      
+      */
      
+      unsigned long currentTime = millis();
+      unsigned char *distance = distanceSensor.readDistance();
       /*
-      if (state == stateMoving) {
-        unsigned char *distance = distanceSensor.readDistance();
-        /*
-        int dist_left = (int)distance[0];
-        int dist_mid = (int)distance[1];
-        int dist_right = (int)distance[2];
-        */
+      if(moving())
+      {
+        if (obstacleAhead(distance[_RIGHT]))
+        {
+          stop();
+
+      }
+      */
+      
+      int calcDistance = encoder.getDistance();
+      String getData = getDataString(); //return value of getDataString
+      
+      
+      if (stopped()) {
+        return;
+      }
+      
+      if (moving()) {
         /*
         //------LOGGING------
         log("distance: ");
@@ -92,12 +76,54 @@ void Aether::Robot::run()
         log("min dir:  %u\n", distanceSensor.dir_min);
         //-------------------
         */
-      /*  if (distance[1] <= TOO_CLOSE) {
+       
+        //if(distanceSensor.dir_min == middle)
+       if (distanceSensor.dir_min == _MIDDLE && obstacleAhead(distance[_MIDDLE])) {
+           calcDistance;
+           //log("calc distance: %u\n", calcDistance);
+           
+           getData;
+           serial.sendData(getData);
+           Serial.println(getData);
+           
+          if (random(2) == 0) {
+            encoder.turnDegrees(90,TURN_SPEED,RIGHT);
+            
+          }
+          else {
+            encoder.turnDegrees(90, TURN_SPEED, LEFT);
+          }
+          //log("bearing: %u\n", encoder.bearing);
+       }  
+       if (distanceSensor.dir_min == _LEFT && obstacleAhead(distance[_LEFT])) {
+          calcDistance;
+          //log("calc distance: %u\n", calcDistance);
           
-          stop();
+           getData;
+           serial.sendData(getData);
+           Serial.println(getData);
+           
+          encoder.turnDegrees(45,TURN_SPEED,RIGHT);
+          //log("bearing: %u\n", encoder.bearing);     
+            }
+       else if (distanceSensor.dir_min == _RIGHT && obstacleAhead(distance[_RIGHT])) {
+          calcDistance;
+          //log("calc distance: %u\n", calcDistance);
+          
+           getData;
+           serial.sendData(getData);
+           Serial.println(getData);
+           
+          encoder.turnDegrees(45,TURN_SPEED,LEFT);
+          //log("bearing: %u\n", encoder.bearing);
+          
         }
         
-      }*/
+       else {
+        move(); 
+       }
+      }
+      
     }
 
     //---------------Protected methods------------------------
@@ -108,8 +134,8 @@ void Aether::Robot::run()
 //------------------------------------------------
   void Aether::Robot::move()
       {
-        leftMotor.setSpeed(100);
-        rightMotor.setSpeed(100);
+        leftMotor.setSpeed(SPEED);
+        rightMotor.setSpeed(SPEED);
         state = stateMoving;
       }
 //------------------------------------------------
@@ -118,6 +144,14 @@ void Aether::Robot::run()
         leftMotor.setSpeed(0);
         rightMotor.setSpeed(0);
         state = stateStopped;
+      }
+//------------------------------------------------
+      void Aether::Robot::pause(unsigned long currentTime)
+      {
+        //timed 1000ms pause
+        leftMotor.setSpeed(0);
+        rightMotor.setSpeed(0);
+        endStateTime = currentTime + 1000;
       }
 //------------------------------------------------
       bool Aether::Robot::doneRunning(unsigned long currentTime)
@@ -129,28 +163,47 @@ void Aether::Robot::run()
       {
         return(distance <= TOO_CLOSE);
       }
-//------------------------------------------------
-      //turn left function
-      //turn right function
+//------------------------------------------------    
       bool Aether::Robot::turn(unsigned long currentTime)
       {
+        
         if (random(2) == 0) {   // decides to turn left or right based on random(2)
-          leftMotor.setSpeed(-150); // turn in one direction
-          rightMotor.setSpeed(150);
+          leftMotor.setSpeed(-TURN_SPEED); // turn in one direction
+          rightMotor.setSpeed(TURN_SPEED);
         }
         else {
-          leftMotor.setSpeed(150); // turn opposite way
-          rightMotor.setSpeed(-150);
+          leftMotor.setSpeed(TURN_SPEED); // turn opposite way
+          rightMotor.setSpeed(-TURN_SPEED);
         }
         state = stateTurning;
         endStateTime = currentTime + random(500, 1000);
       }
 //------------------------------------------------
-      bool Aether::Robot::doneTurning(unsigned long currentTime, unsigned char *distance)
+      bool Aether::Robot::doneTurning(unsigned char *distance)
       //to evaluate to true, time for turn must have passed, distance sensor must not see any obstacles ahead.
       {
-        if (currentTime >= endStateTime)
-          return(distance > TOO_CLOSE);
+        //if (currentTime >= endStateTime)
+        if(distance > TOO_CLOSE) {
         return false;
-      } 
-       
+        }
+      }
+//------------------------------------------------
+      bool Aether::Robot::needToTurn(unsigned char *distance)
+      {
+        if (distance <= TOO_CLOSE) {
+          return true;
+          }
+      }
+//-------------------------------------------------
+String Aether::Robot::getDataString()
+      {
+      dataString = "<p";
+      dataString += encoder.getDistance();
+      dataString += ",";
+      dataString += encoder.bearing;
+      dataString += ">";
+      //Serial.println(dataString);
+
+      return dataString;
+      }
+

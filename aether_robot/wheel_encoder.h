@@ -34,18 +34,22 @@ namespace Aether
   Motor *leftMotor; //holds address to motor object
   Motor *rightMotor;
   int coderAverage;
+  
 
   // private methods
-
   
   public:
     WheelEncoder (int ePinL, int ePinR, Motor *lM, Motor *rM, int ticks180 = 44); // pointers to leftMotor and rightMotor, default ticks180 goes at end
 
     int calcSpeed;
-  // public methods
+    int bearing;
+    int calcDistance;
+    // public methods
     //void count(); // static belongs to class rather than instance.
-    int getCalcSpeed(unsigned long currentTime);
+    void getCalcSpeed(unsigned long currentTime);
     void turnDegrees(int degrees, int turnSpeed, TURN_DIRECTION td);
+    void getBearing(int degrees, TURN_DIRECTION td);
+    int getDistance();
     
   };
 

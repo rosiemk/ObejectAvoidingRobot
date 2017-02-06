@@ -36,7 +36,9 @@ Aether::WheelEncoder::WheelEncoder (int ePinL, int ePinR, Motor* lM, Motor* rM, 
   lastSpeed(0),
   calcSpeed(0),
   revPerSec(0),
-  coderAverage(0)
+  coderAverage(0),
+  bearing(0),
+  calcDistance(0)
   { 
   //attachInterrupt(digitalPinToInterrupt(encodePin), std::bind(&Aether::WheelEncoder::count, this), CHANGE);
   attachInterrupt(digitalPinToInterrupt(encodePinL), leftCount, CHANGE);
@@ -46,7 +48,7 @@ Aether::WheelEncoder::WheelEncoder (int ePinL, int ePinR, Motor* lM, Motor* rM, 
 
 //---------Public method ------------  
 
-    int Aether::WheelEncoder::getCalcSpeed(unsigned long currentTime)
+    void Aether::WheelEncoder::getCalcSpeed(unsigned long currentTime)
     {
       static unsigned long timer = 0;
       if (currentTime-timer > 100) {   
@@ -65,34 +67,64 @@ Aether::WheelEncoder::WheelEncoder (int ePinL, int ePinR, Motor* lM, Motor* rM, 
  
     void Aether::WheelEncoder::turnDegrees(int degrees, int turnSpeed, TURN_DIRECTION td)
     {
-      
       leftCoder = 0;
       rightCoder = 0;
       coderAverage = (leftCoder + rightCoder)/2;
       //determine number of ticks to turn x number of degrees
       int tickGoal = (tickConst * degrees) /100;
 
+       getBearing(degrees, td);
       //Start point turn
       while((coderAverage)<tickGoal) {
+        /*
         Serial.print(tickGoal);
         Serial.print(" ");
         Serial.println(coderAverage);
+        */
         if(td == LEFT)
         {
-          leftMotor->setSpeed(-100);
-         rightMotor->setSpeed(100);
+         leftMotor->setSpeed(-turnSpeed);
+         rightMotor->setSpeed(turnSpeed);
         }
         else
         {
-          leftMotor->setSpeed(100);
-          rightMotor->setSpeed(-100);
+          leftMotor->setSpeed(turnSpeed);
+          rightMotor->setSpeed(-turnSpeed);
         }
-         
          coderAverage =  (leftCoder + rightCoder)/2;
         }
          leftMotor->setSpeed(0);
-         rightMotor->setSpeed(0);
-         
+         rightMotor->setSpeed(0);   
+         leftCoder = 0;
+         rightCoder = 0;     
     }
-//-----------Protected methods--------------
+//-------------------------
+ 
+  void Aether::WheelEncoder::getBearing(int degrees, TURN_DIRECTION td)
+  {
+    if (td == RIGHT) {
+      bearing += degrees;
+    }
+    else {
+      bearing -= degrees;  
+    }
+    
+    if (bearing > 360) {
+      bearing = bearing - 360;
+      }
+    if (bearing < 1) {
+      bearing = 360 + bearing;
+      }
+  }
+//----------------------------------------
+  
+   int Aether::WheelEncoder::getDistance()
+    {
+    coderAverage = (leftCoder + rightCoder)/2;
+    
+    calcDistance = (coderAverage/gearTeeth) * wheelCirc;
+    return calcDistance;
+   }
+
+   
 
