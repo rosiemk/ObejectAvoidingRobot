@@ -42,8 +42,8 @@ void setup()
    *  LOG_VERBOSE (maximum logging)
    */
   ae.setLogVerbosity(LOG_VERBOSE);
-  ae.setCustomUrl("192.168.2.100");
-  ae.setCustomPort(3000);
+  //ae.setCustomUrl("192.168.2.100");
+  //ae.setCustomPort(3000);
 
   /* Stores whether we are connected to an access point yet */
   bool connection = false;
@@ -57,7 +57,8 @@ void setup()
      *  many milliseconds to wait before aborting the
      *  connecting attempt (defualt is 30000 milliseconds)
      */
-    connection = ae.connectToAP("DMC_COLLAB", "elephant");
+    connection = ae.connectToAP("VM647500-2G", "kmyhvyay");
+    //connection = ae.connectToAP("DMC_COLLAB", "elephant");
     // connection = ae.connectToAP("SSID", "PASSWORD", 20000);
   }
 
